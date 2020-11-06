@@ -1,14 +1,3 @@
-package Strings.StringSort;
-
-/**
- * @Author: zja
- * @Description:
- * @Date: Created in 15:00 2020/11/5
- */
-
-import Other.StdIn;
-import Other.StdOut;
-
 /******************************************************************************
  *  Compilation:  javac Count.java
  *  Execution:    java Count alpha < input.txt
@@ -41,6 +30,17 @@ import Other.StdOut;
  *  9 100106
  *
  ******************************************************************************/
+package Strings.StringSort;
+
+/**
+ * @Author: zja
+ * @Description:
+ * @Date: Created in 15:00 2020/11/5
+ */
+
+import Other.StdIn;
+import Other.StdOut;
+
 public class Count {
 
     private Count(){}

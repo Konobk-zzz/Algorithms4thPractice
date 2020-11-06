@@ -1,13 +1,3 @@
-package Strings.StringSort;
-
-import Other.StdIn;
-import Other.StdOut;
-
-/**
- * @Author: zja
- * @Description:
- * @Date: Created in 17:12 2020/11/5
- */
 /******************************************************************************
  *  Compilation:  javac LSD.java
  *  Execution:    java LSD < input.txt
@@ -36,6 +26,16 @@ import Other.StdOut;
  *  zoo
  *
  ******************************************************************************/
+package Strings.StringSort;
+
+import Other.StdIn;
+import Other.StdOut;
+
+/**
+ * @Author: zja
+ * @Description:
+ * @Date: Created in 17:12 2020/11/5
+ */
 public class LSD {
 
     public static void sort(String[] a,int W){

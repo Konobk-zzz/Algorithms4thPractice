@@ -1,13 +1,3 @@
-package Strings.StringSort;
-
-/**
- * @Author: zja
- * @Description:
- * @Date: Created in 14:20 2020/11/5
- */
-
-import Other.StdOut;
-
 /******************************************************************************
  *  Compilation:  javac Alphabet.java
  *  Execution:    java Alphabet
@@ -21,6 +11,16 @@ import Other.StdOut;
  *           Unicode characters between U+0000 and U+FFFF.
  *
  ******************************************************************************/
+package Strings.StringSort;
+
+/**
+ * @Author: zja
+ * @Description:
+ * @Date: Created in 14:20 2020/11/5
+ */
+
+import Other.StdOut;
+
 public class Alphabet {
     /**
      *  The binary alphabet { 0, 1 }.
