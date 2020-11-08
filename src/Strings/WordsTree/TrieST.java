@@ -17,7 +17,7 @@
  *  the 5
  *
  ******************************************************************************/
-package Strings.WordsSearch;
+package Strings.WordsTree;
 
 import Other.StdIn;
 import Other.StdOut;
@@ -65,7 +65,8 @@ public class TrieST<T> {
             return x;
         }
         char c = key.charAt(d);
-        return put(x.next[c],key,val,d+1);
+        x.next[c] = put(x.next[c],key,val,d+1);
+        return x;
     }
 
     public int size(){
@@ -88,7 +89,7 @@ public class TrieST<T> {
 
     public Iterable<String> keysWithPrefix(String pre){
         Queue<String> q = new PriorityQueue<String>();
-        collect(root,new StringBuffer(pre),q);
+        collect(get(root,pre,0),new StringBuffer(pre),q);
         return q;
     }
 
@@ -97,6 +98,7 @@ public class TrieST<T> {
         if(x.val != null) q.add(pre.toString());
         for (int c = 0; c < R; c++) {
             collect(x.next[c],pre.append((char) c),q);
+            pre.deleteCharAt(pre.length() - 1);
         }
     }
 
@@ -114,19 +116,45 @@ public class TrieST<T> {
 
         char next = pat.charAt(d);
         for (char c = 0; c < R; c++) {
-            if(next == '.' || next == c)
-                collect(x,pre.append(c),pat,q);
+            if(next == '.' || next == c){
+                collect(x.next[c],pre.append(c),pat,q);
+                pre.deleteCharAt(pre.length() - 1);
+            }
         }
     }
 
     public String longestPrefixOf(String pre){
-        Node x = search(root, pre, 0);
-        return null;
+        int search = search(root, pre, 0, 0);
+        return pre.substring(0,search);
     }
 
-    private Node search(Node x,String pre,int d){
-        if(x == null || pre.length()==d)return null;
-//        if(x.val != null && )
+    private int search(Node x,String pre,int d,int length){
+        if(x == null)return length;
+        if(x.val != null)length = d;
+        if(d == pre.length())return length;
+        char c = pre.charAt(d);
+        return search(x.next[c],pre,d+1,length);
+    }
+
+    public void delete(String key){
+
+    }
+
+    private Node delete(Node x,String key,int d){
+        if(x == null)return null;
+        if(key.length() == d){
+            x.val = null;
+        }else{
+            char c = key.charAt(d);
+            x.next[c] = delete(x.next[c],key,d+1);
+        }
+
+        if(x.val != null) return x;
+
+        for (int c = 0; c < R; c++) {
+            if(x.next[c] != null) return x;
+        }
+        return null;
     }
 
 
