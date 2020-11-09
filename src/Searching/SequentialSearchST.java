@@ -1,6 +1,38 @@
+/******************************************************************************
+ *  Compilation:  javac SequentialSearchST.java
+ *  Execution:    java SequentialSearchST
+ *  Dependencies: StdIn.java StdOut.java
+ *  Data files:   https://algs4.cs.princeton.edu/31elementary/tinyST.txt
+ *
+ *  Symbol table implementation with sequential search in an
+ *  unordered linked list of key-value pairs.
+ *
+ *  % more tinyST.txt
+ *  S E A R C H E X A M P L E
+ *
+ *  % java SequentialSearchST < tinyST.txt
+ *  L 11
+ *  P 10
+ *  M 9
+ *  X 7
+ *  H 5
+ *  C 4
+ *  R 3
+ *  A 8
+ *  E 12
+ *  S 0
+ *
+ ******************************************************************************/
 package Searching;
 
+import Other.StdIn;
+import Other.StdOut;
+import com.sun.jmx.remote.internal.ArrayQueue;
+
+import java.util.ArrayList;
+import java.util.List;
 import java.util.PriorityQueue;
+import java.util.Queue;
 
 /**
  * @Author: zja
@@ -64,9 +96,19 @@ public class SequentialSearchST<K,V> {
     }
 
     public Iterable<K> keys(){
-        PriorityQueue<K> q = new PriorityQueue<>();
+        List<K> q = new ArrayList<K>();
         for (Node x = first; x != null; x = x.next)
             q.add(x.key);
         return q;
+    }
+
+    public static void main(String[] args) {
+        SequentialSearchST<String, Integer> st = new SequentialSearchST<String, Integer>();
+        for (int i = 0; !StdIn.isEmpty(); i++) {
+            String key = StdIn.readString();
+            st.put(key, i);
+        }
+        for (String s : st.keys())
+            StdOut.println(s + " " + st.get(s));
     }
 }
