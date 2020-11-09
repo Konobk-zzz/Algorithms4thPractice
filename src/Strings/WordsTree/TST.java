@@ -105,6 +105,25 @@ public class TST<T> {
         collect(x.right,pre,q);
     }
 
+    public String longestPrefixOf(String pre){
+        int search = search(root, pre, 0, 0);
+        return pre.substring(0,search);
+    }
+
+    private int search(Node x,String pre,int d,int length){
+        if(x == null)return length;
+        if(d == pre.length())return length;
+
+        if(pre.charAt(d) < x.c){
+            return search(x.left,pre,d,length);
+        }else if(pre.charAt(d) > x.c){
+            return search(x.right,pre,d,length);
+        }else{
+            if(x.val != null)length = d + 1;
+            return search(x.mid,pre,d + 1,length);
+        }
+    }
+
     public static void main(String[] args) {
 
         // build symbol table from standard input

@@ -137,7 +137,7 @@ public class TrieST<T> {
     }
 
     public void delete(String key){
-
+        delete(root,key,0);
     }
 
     private Node delete(Node x,String key,int d){
