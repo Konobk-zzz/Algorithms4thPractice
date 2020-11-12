@@ -87,7 +87,7 @@ public class BST<K extends Comparable,V> {
     private void keys(Node x, List list){
         if(x == null)return;
         keys(x.left,list);
-        list.add(x.val);
+        list.add(x.key);
         keys(x.right,list);
     }
 
@@ -107,6 +107,15 @@ public class BST<K extends Comparable,V> {
     private Node min(Node x){
         if(x.left == null)return x;
         return min(x.left);
+    }
+
+    public K max(){
+        return max(root).key;
+    }
+
+    private Node max(Node x){
+        if(x.right == null)return x;
+        return max(x.right);
     }
 
     public K floor(K key){
@@ -235,6 +244,19 @@ public class BST<K extends Comparable,V> {
 
         for (String s : st.keys())
             StdOut.println(s + " " + st.get(s));
+
+        System.out.println("Min:  " + st.min());
+        System.out.println("Max:  " + st.max());
+
+        st.deleteMin();
+        st.deleteMax();
+
+        st.delete("L");
+
+        for (String s : st.keys())
+            StdOut.println(s + " " + st.get(s));
+
+        System.out.println(st.rank("e"));
     }
 
 }
