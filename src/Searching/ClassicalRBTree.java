@@ -74,13 +74,12 @@ public class ClassicalRBTree<K extends Comparable,V> {
         }
         int compare = node.key.compareTo(key);
         if (compare < 0) {
-            get(key,node.right);
+            return get(key,node.right);
         }else if (compare > 0) {
-            get(key,node.left);
+            return get(key,node.left);
         }else {
-            return null;
+            return node;
         }
-        return null;
     }
 
     private void insert(K key, V value) {
@@ -224,6 +223,145 @@ public class ClassicalRBTree<K extends Comparable,V> {
         return node == null?0L:node.size;
     }
 
+    private Node min(Node node) {
+        while (node.left != null) {
+            node = node.left;
+        }
+        return node;
+    }
+
+    private Node max(Node node) {
+        while (node.right != null) {
+            node = node.right;
+        }
+        return node;
+    }
+
+    private void swapNodeKeyValue(Node node1,Node node2) {
+        K tKey = node1.key;
+        V tValue = node1.value;
+        node1.key = node2.key;
+        node1.value = node2.value;
+        node2.key = tKey;
+        node2.value = tValue;
+    }
+
+    private void remove(K key) {
+        Node targetNode = get(key, root);
+        if (targetNode.left != null && targetNode.right != null) {
+            Node replaceNode = min(targetNode.right);
+            if (replaceNode == null) {
+                replaceNode = max(targetNode.left);
+            }
+            swapNodeKeyValue(targetNode,replaceNode);
+            targetNode = replaceNode;
+        }
+
+        if (targetNode.left != null || targetNode.right != null) {
+            removeOnlyOneChild(targetNode);
+        }else {
+            removeLeafNode(targetNode,true);
+        }
+    }
+
+    private void removeOnlyOneChild(Node node) {
+        if (node.left != null) {
+            node.value = node.left.value;
+            node.left = null;
+        }else {
+            node.value = node.right.value;
+            node.right = null;
+        }
+    }
+
+    private void removeLeafNode(Node node, boolean isDelete) {
+        Node parentNode = node.parent;
+        Node brotherNode;
+        Node remoteNephewNode;
+        Node nearNephewNode;
+        boolean nodeIsLeft;
+        if (node == parentNode.left) {
+            brotherNode = parentNode.right;
+            remoteNephewNode = brotherNode == null ? null:brotherNode.right;
+            nearNephewNode = brotherNode == null ? null:brotherNode.left;
+            nodeIsLeft = true;
+        }else {
+            brotherNode = parentNode.left;
+            remoteNephewNode = brotherNode == null ? null:brotherNode.left;
+            nearNephewNode = brotherNode == null ? null:brotherNode.right;
+            nodeIsLeft = false;
+        }
+
+        /** case1 parentNode Is RED */
+        if (parentNode.color == Color.RED) {
+            parentNode.color = Color.BLACK;
+            brotherNode.color = Color.RED;
+            if (isDelete) {
+                removeNode(nodeIsLeft,parentNode);
+            }
+            return;
+        }
+        /** case2 brotherNode Is RED */
+        if (parentNode.color == Color.BLACK  && brotherNode.color == Color.RED) {
+            parentNode.color = Color.RED;
+            brotherNode.color = Color.BLACK;
+            rotationNode(nodeIsLeft, brotherNode);
+            removeLeafNode(node,true);
+            return;
+        }
+
+        /** case3 remoteNephewNode Is RED */
+        if (remoteNephewNode.color == Color.RED) {
+            swapNodeColor(brotherNode, remoteNephewNode);
+            remoteNephewNode.color = Color.BLACK;
+            rotationNode(nodeIsLeft, brotherNode);
+            if (isDelete) {
+                removeNode(nodeIsLeft, parentNode);
+            }
+            return;
+        }
+
+        /** case4 nearNephewNode Is RED */
+        if (nearNephewNode.color == Color.RED) {
+            brotherNode.color = Color.RED;
+            nearNephewNode.color = Color.BLACK;
+            // TODO 表意不明确
+            rotationNode(!nodeIsLeft,nearNephewNode);
+            removeLeafNode(node,true);
+        }
+
+        /** case5 node、parentNode、brotherNode All BLACK */
+        if (node != root && node.color == Color.BLACK && parentNode.color == Color.BLACK && brotherNode.color == Color.BLACK) {
+            if (isDelete){
+                removeNode(nodeIsLeft,parentNode);
+            }
+            brotherNode.color = Color.RED;
+            removeLeafNode(parentNode,false);
+        }
+    }
+
+    private void removeNode(boolean nodeIsLeft, Node parentNode) {
+        if (nodeIsLeft) {
+            parentNode.left = null;
+        }else {
+            parentNode.right = null;
+        }
+    }
+
+    private void rotationNode(boolean nodeIsLeft, Node node) {
+        if (nodeIsLeft) {
+            leftRotation(node);
+        }else {
+            rightRotation(node);
+        }
+    }
+
+    private void swapNodeColor(Node node1,Node node2) {
+        Color tColor = node1.color;
+        node1.color = node2.color;
+        node2.color = tColor;
+    }
+
     private class Node {
         public K key;
         public V value;
@@ -272,9 +410,14 @@ public class ClassicalRBTree<K extends Comparable,V> {
         for(i=0; i<arr.length; i++) {
             System.out.printf("%d ", arr[i]);
             tree.insert(arr[i],arr[i]);
-            System.out.printf("\n== 前序遍历: ");
-            tree.preOrder();
         }
+
+        System.out.printf("\n== 前序遍历: ");
+        tree.preOrder();
+
+        i = 8;
+        System.out.printf("\n== 删除根节点: %d", i);
+        tree.remove(i);
 
         System.out.printf("\n== 前序遍历: ");
         tree.preOrder();
