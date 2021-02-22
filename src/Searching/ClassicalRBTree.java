@@ -1,5 +1,7 @@
 package Searching;
 
+import java.util.Scanner;
+
 public class ClassicalRBTree<K extends Comparable,V> {
 
     private Node root;
@@ -415,11 +417,14 @@ public class ClassicalRBTree<K extends Comparable,V> {
         System.out.printf("\n== 前序遍历: ");
         tree.preOrder();
 
-        i = 8;
-        System.out.printf("\n== 删除根节点: %d", i);
-        tree.remove(i);
-
-        System.out.printf("\n== 前序遍历: ");
-        tree.preOrder();
+        System.out.println("== 请输入要删除的key: ");
+        Scanner scanner = new Scanner(System.in);
+        while(scanner.hasNextLine()) {
+            int key = scanner.nextInt();
+            System.out.printf("\n== 删除节点: %d", key);
+            tree.remove(key);
+            System.out.printf("\n== 前序遍历: ");
+            tree.preOrder();
+        }
     }
 }
