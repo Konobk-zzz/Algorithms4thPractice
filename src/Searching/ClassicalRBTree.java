@@ -20,6 +20,9 @@ public class ClassicalRBTree<K extends Comparable,V> {
         }
         node.left = parentNode;
         node.parent = parentNode.parent;
+        if (parentNode.parent == null) {
+            root = node;
+        }
         parentNode.parent = node;
     }
 
@@ -37,6 +40,9 @@ public class ClassicalRBTree<K extends Comparable,V> {
         }
         node.right = parentNode;
         node.parent = parentNode.parent;
+        if (parentNode.parent == null) {
+            root = node;
+        }
         parentNode.parent = node;
     }
 
@@ -250,6 +256,9 @@ public class ClassicalRBTree<K extends Comparable,V> {
 
     private void remove(K key) {
         Node targetNode = get(key, root);
+        if (targetNode == null) {
+            return;
+        }
         if (targetNode.left != null && targetNode.right != null) {
             Node replaceNode = min(targetNode.right);
             if (replaceNode == null) {
@@ -268,10 +277,10 @@ public class ClassicalRBTree<K extends Comparable,V> {
 
     private void removeOnlyOneChild(Node node) {
         if (node.left != null) {
-            node.value = node.left.value;
+            swapNodeKeyValue(node,node.left);
             node.left = null;
         }else {
-            node.value = node.right.value;
+            swapNodeKeyValue(node,node.right);
             node.right = null;
         }
     }
@@ -282,6 +291,15 @@ public class ClassicalRBTree<K extends Comparable,V> {
         Node remoteNephewNode;
         Node nearNephewNode;
         boolean nodeIsLeft;
+
+        /** 删除为根节点时 */
+        if (parentNode == null) {
+            if (isDelete) {
+                root = node;
+            }
+            return;
+        }
+
         if (node == parentNode.left) {
             brotherNode = parentNode.right;
             remoteNephewNode = brotherNode == null ? null:brotherNode.right;
@@ -292,6 +310,14 @@ public class ClassicalRBTree<K extends Comparable,V> {
             remoteNephewNode = brotherNode == null ? null:brotherNode.left;
             nearNephewNode = brotherNode == null ? null:brotherNode.right;
             nodeIsLeft = false;
+        }
+
+        /** 如果是红节点直接删除 */
+        if (node.color == Color.RED) {
+            if (isDelete) {
+                removeNode(nodeIsLeft,parentNode);
+            }
+            return;
         }
 
         /** case1 parentNode Is RED */
@@ -308,7 +334,17 @@ public class ClassicalRBTree<K extends Comparable,V> {
             parentNode.color = Color.RED;
             brotherNode.color = Color.BLACK;
             rotationNode(nodeIsLeft, brotherNode);
-            removeLeafNode(node,true);
+            removeLeafNode(node,isDelete);
+            return;
+        }
+
+        /** case5 node、parentNode、brotherNode All BLACK */
+        if (node != root && node.color == Color.BLACK && parentNode.color == Color.BLACK && brotherNode.color == Color.BLACK) {
+            if (isDelete){
+                removeNode(nodeIsLeft,parentNode);
+            }
+            brotherNode.color = Color.RED;
+            removeLeafNode(parentNode,false);
             return;
         }
 
@@ -329,21 +365,25 @@ public class ClassicalRBTree<K extends Comparable,V> {
             nearNephewNode.color = Color.BLACK;
             // TODO 表意不明确
             rotationNode(!nodeIsLeft,nearNephewNode);
-            removeLeafNode(node,true);
+            removeLeafNode(node,isDelete);
         }
 
-        /** case5 node、parentNode、brotherNode All BLACK */
-        if (node != root && node.color == Color.BLACK && parentNode.color == Color.BLACK && brotherNode.color == Color.BLACK) {
-            if (isDelete){
-                removeNode(nodeIsLeft,parentNode);
-            }
-            brotherNode.color = Color.RED;
-            removeLeafNode(parentNode,false);
-        }
+
     }
 
     private void removeNode(boolean nodeIsLeft, Node parentNode) {
         if (nodeIsLeft) {
+            parentNode.left = null;
+        }else {
+            parentNode.right = null;
+        }
+    }
+
+    private void removeNode(Node node) {
+        Node parentNode = node.parent;
+        if (parentNode == null) {
+            root = null;
+        }else if (node == parentNode.left) {
             parentNode.left = null;
         }else {
             parentNode.right = null;
