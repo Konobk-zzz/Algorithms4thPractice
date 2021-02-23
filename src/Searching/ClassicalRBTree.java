@@ -14,16 +14,25 @@ public class ClassicalRBTree<K extends Comparable,V> {
         if (parentNode == null) {
             return;
         }
+        Node gParentNode = parentNode.parent;
+
         parentNode.right = node.left;
         if (node.left != null) {
             node.left.parent = parentNode;
         }
-        node.left = parentNode;
-        node.parent = parentNode.parent;
-        if (parentNode.parent == null) {
+
+        node.parent = gParentNode;
+        if (gParentNode == null) {
             root = node;
+        }else if (parentNode == gParentNode.left) {
+            gParentNode.left = node;
+        }else {
+            gParentNode.right = node;
         }
+
+        node.left = parentNode;
         parentNode.parent = node;
+
     }
 
     private void rightRotation(Node node) {
@@ -34,15 +43,23 @@ public class ClassicalRBTree<K extends Comparable,V> {
         if (parentNode == null) {
             return;
         }
+        Node gParentNode = parentNode.parent;
+
         parentNode.left = node.right;
         if (node.right != null) {
             node.right.parent = parentNode;
         }
-        node.right = parentNode;
-        node.parent = parentNode.parent;
-        if (parentNode.parent == null) {
+
+        node.parent = gParentNode;
+        if (gParentNode == null) {
             root = node;
+        }else if (parentNode == gParentNode.right) {
+            gParentNode.right = node;
+        }else {
+            gParentNode.left = node;
         }
+
+        node.right = parentNode;
         parentNode.parent = node;
     }
 
@@ -144,11 +161,6 @@ public class ClassicalRBTree<K extends Comparable,V> {
                         tmp = node;
                         node = parentNode;
                         parentNode = tmp;
-                        if (gParentNode.left == node) {
-                            gParentNode.left = parentNode;
-                        }else {
-                            gParentNode.right = parentNode;
-                        }
                     }
                     gParentNode.color = Color.RED;
                     parentNode.color = Color.BLACK;
@@ -156,13 +168,6 @@ public class ClassicalRBTree<K extends Comparable,V> {
                     tmp = parentNode;
                     parentNode = gParentNode;
                     gParentNode = tmp;
-                    if (gParentNode.parent != null) {
-                        if (gParentNode.parent.left == parentNode) {
-                            gParentNode.parent.left = gParentNode;
-                        }else {
-                            gParentNode.parent.right = gParentNode;
-                        }
-                    }
                 }
             }else {
                 Node uncleNode = gParentNode.left;
@@ -175,11 +180,6 @@ public class ClassicalRBTree<K extends Comparable,V> {
                         tmp = node;
                         node = parentNode;
                         parentNode = tmp;
-                        if (gParentNode.left == node) {
-                            gParentNode.left = parentNode;
-                        }else {
-                            gParentNode.right = parentNode;
-                        }
                     }
                     gParentNode.color = Color.RED;
                     parentNode.color = Color.BLACK;
@@ -187,13 +187,6 @@ public class ClassicalRBTree<K extends Comparable,V> {
                     tmp = parentNode;
                     parentNode = gParentNode;
                     gParentNode = tmp;
-                    if (gParentNode.parent != null) {
-                        if (gParentNode.parent.left == parentNode) {
-                            gParentNode.parent.left = gParentNode;
-                        }else {
-                            gParentNode.parent.right = gParentNode;
-                        }
-                    }
                 }
             }
         }
@@ -271,111 +264,147 @@ public class ClassicalRBTree<K extends Comparable,V> {
         if (targetNode.left != null || targetNode.right != null) {
             removeOnlyOneChild(targetNode);
         }else {
-            removeLeafNode(targetNode,true);
+            /** 删除为根节点时 */
+            if (targetNode.parent == null) {
+                root = null;
+                return;
+            }
+            /** 如果是红节点直接删除 */
+            if (targetNode.color == Color.RED) {
+                removeNode(targetNode);
+                return;
+            }
+            removeFixUp(targetNode);
+            removeNode(targetNode);
         }
+    }
+
+    private Node getBrotherNode(Node node) {
+        Node parentNode = node.parent;
+        if (node == parentNode.left) {
+            return parentNode.right;
+        }else {
+            return parentNode.left;
+        }
+    }
+
+    private Node getRemoteNephewNode(Node node) {
+        Node parentNode = node.parent;
+        if (node == parentNode.left) {
+            return parentNode.right == null ? null:parentNode.right.right;
+        }else {
+            return parentNode.left == null ? null:parentNode.left.left;
+        }
+    }
+
+    private Node getNearNephewNode(Node node) {
+        Node parentNode = node.parent;
+        if (node == parentNode.left) {
+            return parentNode.right == null ? null:parentNode.right.left;
+        }else {
+            return parentNode.left == null ? null:parentNode.left.right;
+        }
+    }
+
+    private boolean nodeIsLeftChild(Node node) {
+        Node parentNode = node.parent;
+        if (node == parentNode.left) {
+            return true;
+        }else {
+            return false;
+        }
+    }
+
+    private void removeFixUp(Node node) {
+        Node parentNode = node.parent;
+        Node brotherNode = getBrotherNode(node);
+        Node remoteNephewNode = getRemoteNephewNode(node);
+        Node nearNephewNode = getNearNephewNode(node);
+        boolean nodeIsLeft = nodeIsLeftChild(node);
+
+        /** case1 */
+        if (brotherNode.color == Color.RED) {
+            parentNode.color = Color.RED;
+            brotherNode.color = Color.BLACK;
+            rotationNode(nodeIsLeft,brotherNode);
+
+            /** 更新兄弟节点、兄弟节点的子节点 */
+            brotherNode = getBrotherNode(node);
+            remoteNephewNode = getRemoteNephewNode(node);
+            nearNephewNode = getNearNephewNode(node);
+        }
+
+        /** case2 */
+        if (brotherNode.color == Color.BLACK && nodeIsNilOrBlack(remoteNephewNode) && nodeIsNilOrBlack(nearNephewNode)) {
+            brotherNode.color = Color.RED;
+            if (parentNode.color == Color.RED || parentNode == root) {
+                parentNode.color = Color.BLACK;
+                return;
+            }else {
+                removeFixUp(parentNode);
+            }
+        }
+
+        /** case3 */
+        if (brotherNode.color == Color.BLACK && nodeNotNilAndRed(nearNephewNode) && nodeNotNilAndBlack(remoteNephewNode)) {
+            swapNodeColor(brotherNode, nearNephewNode);
+            rotationNode(!nodeIsLeft,nearNephewNode);
+
+            /** 更新兄弟节点、兄弟节点的子节点 */
+            brotherNode = getBrotherNode(node);
+            remoteNephewNode = getRemoteNephewNode(node);
+            nearNephewNode = getNearNephewNode(node);
+        }
+
+        /** case4 */
+        if (brotherNode.color == Color.BLACK && nodeNotNilAndRed(remoteNephewNode)) {
+            brotherNode.color = parentNode.color;
+            parentNode.color = Color.BLACK;
+            remoteNephewNode.color = Color.BLACK;
+            rotationNode(nodeIsLeft,brotherNode);
+            return;
+        }
+    }
+
+    private boolean nodeNotNilAndRed(Node node) {
+        if (node != null && node.color == Color.RED) {
+            return true;
+        }
+        return false;
+    }
+
+    private boolean nodeNotNilAndBlack(Node node) {
+        if (node != null && node.color == Color.BLACK) {
+            return true;
+        }
+        return false;
+    }
+
+    private boolean nodeIsNilOrBlack(Node node) {
+        if (node == null || node.color == Color.BLACK) {
+            return true;
+        }
+        return false;
     }
 
     private void removeOnlyOneChild(Node node) {
-        if (node.left != null) {
-            swapNodeKeyValue(node,node.left);
-            node.left = null;
-        }else {
-            swapNodeKeyValue(node,node.right);
-            node.right = null;
-        }
-    }
-
-    private void removeLeafNode(Node node, boolean isDelete) {
+        boolean isRoot = node == root;
         Node parentNode = node.parent;
-        Node brotherNode;
-        Node remoteNephewNode;
-        Node nearNephewNode;
-        boolean nodeIsLeft;
-
-        /** 删除为根节点时 */
+        Node childNode = node.left != null?node.left:node.right;
         if (parentNode == null) {
-            if (isDelete) {
-                root = node;
-            }
-            return;
-        }
-
-        if (node == parentNode.left) {
-            brotherNode = parentNode.right;
-            remoteNephewNode = brotherNode == null ? null:brotherNode.right;
-            nearNephewNode = brotherNode == null ? null:brotherNode.left;
-            nodeIsLeft = true;
+            root = childNode;
+            childNode.color = Color.BLACK;
+            childNode.parent = null;
         }else {
-            brotherNode = parentNode.left;
-            remoteNephewNode = brotherNode == null ? null:brotherNode.left;
-            nearNephewNode = brotherNode == null ? null:brotherNode.right;
-            nodeIsLeft = false;
-        }
-
-        /** 如果是红节点直接删除 */
-        if (node.color == Color.RED) {
-            if (isDelete) {
-                removeNode(nodeIsLeft,parentNode);
+            if (node == parentNode.left) {
+               parentNode.left = childNode;
+            }else {
+                parentNode.right = childNode;
             }
-            return;
+            childNode.parent = parentNode;
         }
-
-        /** case1 parentNode Is RED */
-        if (parentNode.color == Color.RED) {
-            parentNode.color = Color.BLACK;
-            brotherNode.color = Color.RED;
-            if (isDelete) {
-                removeNode(nodeIsLeft,parentNode);
-            }
-            return;
-        }
-        /** case2 brotherNode Is RED */
-        if (parentNode.color == Color.BLACK  && brotherNode.color == Color.RED) {
-            parentNode.color = Color.RED;
-            brotherNode.color = Color.BLACK;
-            rotationNode(nodeIsLeft, brotherNode);
-            removeLeafNode(node,isDelete);
-            return;
-        }
-
-        /** case5 node、parentNode、brotherNode All BLACK */
-        if (node != root && node.color == Color.BLACK && parentNode.color == Color.BLACK && brotherNode.color == Color.BLACK) {
-            if (isDelete){
-                removeNode(nodeIsLeft,parentNode);
-            }
-            brotherNode.color = Color.RED;
-            removeLeafNode(parentNode,false);
-            return;
-        }
-
-        /** case3 remoteNephewNode Is RED */
-        if (remoteNephewNode.color == Color.RED) {
-            swapNodeColor(brotherNode, remoteNephewNode);
-            remoteNephewNode.color = Color.BLACK;
-            rotationNode(nodeIsLeft, brotherNode);
-            if (isDelete) {
-                removeNode(nodeIsLeft, parentNode);
-            }
-            return;
-        }
-
-        /** case4 nearNephewNode Is RED */
-        if (nearNephewNode.color == Color.RED) {
-            brotherNode.color = Color.RED;
-            nearNephewNode.color = Color.BLACK;
-            // TODO 表意不明确
-            rotationNode(!nodeIsLeft,nearNephewNode);
-            removeLeafNode(node,isDelete);
-        }
-
-
-    }
-
-    private void removeNode(boolean nodeIsLeft, Node parentNode) {
-        if (nodeIsLeft) {
-            parentNode.left = null;
-        }else {
-            parentNode.right = null;
+        if (node.color == Color.BLACK && !isRoot) {
+            removeFixUp(childNode);
         }
     }
 
